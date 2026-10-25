@@ -8,9 +8,11 @@ error stackVerify(stack_t *stk)
 
     if ((flag = allocationCheck(stk->pointer)) != CORRECT) return flag;
 
-    if ((flag = hashCheck(stk)) != CORRECT) return flag;
+    #ifdef STACK_DEBUG
+        if ((flag = hashCheck(stk)) != CORRECT) return flag;
 
-    if ((flag = canaryCheck(stk)) != CORRECT) return flag;
+        if ((flag = canaryCheck(stk)) != CORRECT) return flag;
+    #endif
 
     #ifdef STACK_DEBUG
         if ((flag = fileInfoCheck(stk)) != CORRECT) return flag;
@@ -45,28 +47,30 @@ error essentialCheck(stack_t *stk)
     return CORRECT;
 }
 
-error hashCheck(stack_t *stk)
-{
-    if (recountHash(stk) != stk->hash)
+#ifdef STACK_DEBUG
+    error hashCheck(stack_t *stk)
     {
-        return HASH_ERROR;
+        if (recountHash(stk) != stk->hash)
+        {
+            return HASH_ERROR;
+        }
+
+        return CORRECT;
     }
 
-    return CORRECT;
-}
-
-error canaryCheck(stack_t *stk)
-{
-    if (!compareValues(stk->pointer[0], canary1) ||
-        !compareValues(stk->pointer[stk->capacity + 1], canary2) ||
-        !compareValues(stk->stuctCanary1, canary3) ||
-        !compareValues(stk->stuctCanary2, canary4))
+    error canaryCheck(stack_t *stk)
     {
-        return CANARY_DEAD;
-    }
+        if (!compareValues(stk->pointer[0], canary1) ||
+            !compareValues(stk->pointer[stk->capacity + 1], canary2) ||
+            !compareValues(stk->stuctCanary1, canary3) ||
+            !compareValues(stk->stuctCanary2, canary4))
+        {
+            return CANARY_DEAD;
+        }
 
-    return CORRECT;
-}
+        return CORRECT;
+    }
+#endif
 
 error popPossibleCheck(stack_t *stk)
 {
@@ -100,7 +104,7 @@ error zeroStackCheck(stack_t *stk)
     return CORRECT;
 }
 
-error allocationCheck(structEnum_t *ptr)
+error allocationCheck(stackElem_t *ptr)
 {
     if (ptr == NULL)
     {

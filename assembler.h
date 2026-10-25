@@ -1,7 +1,7 @@
 #ifndef ASSEMBLER_H
 #define ASSEMBLER_H
 
-const int NUMBER_OF_LABELS = 20;//TODO calloc adn realloc
+const int NUMBER_OF_LABELS = 20;
 const int NUMBER_OF_READ_ITEMS = 10;
 const size_t NUMBER_OF_PASSES = 2;
 

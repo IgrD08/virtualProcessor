@@ -1,10 +1,10 @@
 #ifndef STACK_H
 #define STACK_H
 
-typedef int structEnum_t;
-#define SPEC "%d"
+typedef unsigned int stackElem_t;
+#define SPEC "%u"
 
-#define STACK_DEBUG
+//#define STACK_DEBUG
 
 #ifdef STACK_DEBUG
     #define ON_DBG(...) __VA_ARGS__
@@ -28,13 +28,15 @@ typedef int structEnum_t;
     #include <windows.h>
 #endif
 
-const structEnum_t POISON = -67;
+const stackElem_t POISON = 67;
 const size_t MAX = (size_t)(-1) / 2;
 
-const structEnum_t canary1 = 0xEDA;
-const structEnum_t canary2 = 0xBEDA;
-const structEnum_t canary3 = (structEnum_t)0xE1DADEDA;
-const structEnum_t canary4 = (structEnum_t)0xBEDADEDA;
+#ifdef STACK_DEBUG
+    const stackElem_t canary1 = 0xEDA;
+    const stackElem_t canary2 = 0xBEDA;
+    const stackElem_t canary3 = (stackElem_t)0xE1DADEDA;
+    const stackElem_t canary4 = (stackElem_t)0xBEDADEDA;
+#endif
 
 enum error
 {
@@ -57,35 +59,43 @@ enum returnStatus
 
 struct stack_t
 {
-    structEnum_t stuctCanary1;
-    structEnum_t *data;
-    structEnum_t *pointer;
+    #ifdef STACK_DEBUG
+        stackElem_t stuctCanary1;
+    #endif
+    stackElem_t *data;
+    stackElem_t *pointer;
     size_t size;
     size_t capacity;
     ON_DBG(const char *functionName; const char *fileName; int line;)
-    uint64_t hash;
-    structEnum_t stuctCanary2;
+    #ifdef STACK_DEBUG
+        uint64_t hash;
+        stackElem_t stuctCanary2;
+    #endif
 };
 
 returnStatus stackInit(stack_t *stk, size_t initialCapacity
                 ON_DBG(, const char *functionName, const char *fileName, int line));
-returnStatus stackPush(stack_t *stk, structEnum_t value);
-structEnum_t stackPop(stack_t *stk);
+returnStatus stackPush(stack_t *stk, stackElem_t value);
+stackElem_t stackPop(stack_t *stk);
 returnStatus stackRecalloc(stack_t *stk, size_t newCapacity);
-bool compareValues(const structEnum_t value1, const structEnum_t value2);
-uint64_t recountHash(stack_t *stk);
+bool compareValues(const stackElem_t value1, const stackElem_t value2);
+#ifdef STACK_DEBUG
+    uint64_t recountHash(stack_t *stk);
+#endif
 returnStatus stackDestroy(stack_t *stk);
 
 error stackVerify(stack_t *stk);
 error essentialCheck(stack_t *stk);
-error hashCheck(stack_t *stk);
-error canaryCheck(stack_t *stk);
+#ifdef STACK_DEBUG
+    error hashCheck(stack_t *stk);
+    error canaryCheck(stack_t *stk);
+#endif
 error popPossibleCheck(stack_t *stk);
 #ifdef STACK_DEBUG
     error fileInfoCheck(stack_t *stk);
 #endif
 error zeroStackCheck(stack_t *stk);
-error allocationCheck(structEnum_t *ptr);
+error allocationCheck(stackElem_t *ptr);
 
 returnStatus stackDump(stack_t *stk, FILE *fp);
 bool fileOpening(FILE **fp, const char *fileName, const char *fileFlag);

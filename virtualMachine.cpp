@@ -4,7 +4,8 @@
 
 returnValue(*arrayOfFunctionPointers[])(processor *proc) = {
                                                             hlt, push, add, sub, mul, div, out, pop,
-                                                            jmp, ja, jae, jb, jbe, je, jne, in, call, ret, draw
+                                                            jmp, ja, jae, jb, jbe, je, jne, in, call,
+                                                            ret, consoledraw, windowdraw
                                                            };
 
 int main(int argc, char *argv[])
@@ -19,16 +20,18 @@ int main(int argc, char *argv[])
     proc.stk = {};
     STACK_INIT(&(proc.stk), initialCapacity);
     STACK_INIT(&(proc.returnStk), initialCapacity);
+    proc.RAM = (stackElem_t *) calloc(RAM_SIZE, sizeof(stackElem_t));
+    proc.viRAM = &proc.RAM[4000];
 
     struct stat fileInfo;
     if (stat(argv[1], &fileInfo) == -1)
         return INTERPRETER_ERROR;
 
-    proc.code = (int *) calloc((size_t)fileInfo.st_size / sizeof(int), sizeof(int));
+    proc.code = (stackElem_t *) calloc((size_t)fileInfo.st_size / sizeof(stackElem_t), sizeof(stackElem_t));
 
     FILE *filePointer = NULL;
     if (fileOpening(&filePointer, "numericData.asm", "rb") == 1)
-            return 1;
+        return 1;
 
     size_t count = fread(proc.code, sizeof(int), (size_t)fileInfo.st_size / sizeof(int), filePointer);
 
@@ -46,18 +49,21 @@ int main(int argc, char *argv[])
         {
             fprintf(stderr, "Segmentation fault...");
 
+            processorDestroyer(&proc);
+
+            exit(EXIT_FAILURE);
+
             return 1;
         }
-
         //stackDump(&proc.stk, stdout);
 
         // processorDump(&proc, (size_t)fileInfo.st_size / sizeof(int)); //TODO - улучшить
     }
 
-    for (int i = 0; i < 100; i++)
-    {
-        printf("%d ", proc.RAM[i]);
-    }
+    // for (int i = 0; i < 100; i++)
+    // {
+    //     printf("%d ", proc.RAM[i]);
+    // }
 
     processorDestroyer(&proc);
 

@@ -14,7 +14,7 @@ returnValue readFromFile(fileInfoStruc_t *fileToReadInfo)
     if (fileOpening(&(fileToReadInfo->filePointer), fileToReadInfo->name, "r") == 1)
         return INTERPRETER_ERROR;
 
-    int realCount = fread(fileToReadInfo->buffer, sizeof(char), (size_t)fileInfo.st_size, fileToReadInfo->filePointer);
+    size_t realCount = fread(fileToReadInfo->buffer, sizeof(char), (size_t)fileInfo.st_size, fileToReadInfo->filePointer);
 
     fileToReadInfo->buffer[realCount] = '\0';
 
@@ -184,17 +184,6 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
                         data->data[data->dataIndex] = enteredData->value;
                         (data->dataIndex)++;
                     }
-                    else if (sscanf(fileToReadInfo->individualLines[i], "%*s %s + %d", enteredData->string, &enteredData->value) == 2)
-                    {
-                        data->data[data->dataIndex] = POP | 0x20 | 0x40;
-                        (data->dataIndex)++;
-
-                        choseRegister(data, enteredData);
-                        (data->dataIndex)++;
-
-                        data->data[data->dataIndex] = enteredData->value;
-                        (data->dataIndex)++;
-                    }
                     else if (sscanf(fileToReadInfo->individualLines[i], "%*s [%[^]]s", enteredData->string) == 1)
                     {
                         data->data[data->dataIndex] = POP | 0x40 | 0x80;
@@ -231,13 +220,25 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
                 {
                     data->data[data->dataIndex] = CALL;
                     (data->dataIndex)++;
+
+                    if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) <= 0)
+                        break;
+
+                    if (checkForLabel(data, enteredData) == INTERPRETER_ERROR)
+                        break;
                 }
 
-                if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) <= 0)
-                    break;
+                if (!strcmp(enteredData->command, "CONSOLEDRAW"))
+                {
+                    data->data[data->dataIndex] = CONSOLE_DRAW;
+                    (data->dataIndex)++;
 
-                if (checkForLabel(data, enteredData) == INTERPRETER_ERROR)
-                    break;
+                    if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) <= 0)
+                        break;
+
+                    choseRegister(data, enteredData);
+                    (data->dataIndex)++;
+                }
 
                 break;
 
@@ -276,18 +277,6 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
                 if (!strcmp(enteredData->command, "DIV"))
                 {
                     data->data[data->dataIndex] = DIV;
-                    (data->dataIndex)++;
-                }
-
-                if (!strcmp(enteredData->command, "DRAW"))
-                {
-                    if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) <= 0)
-                        break;
-
-                    data->data[data->dataIndex] = DRAW;
-                    (data->dataIndex)++;
-
-                    choseRegister(data, enteredData);
                     (data->dataIndex)++;
                 }
 
@@ -350,6 +339,16 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 break;
 
+            case 'W':
+
+                if (!strcmp(enteredData->command, "WINDOWDRAW"))
+                {
+                    data->data[data->dataIndex] = WINDOW_DRAW;
+                    (data->dataIndex)++;
+                }
+
+                break;
+
             case ':':
 
                 if ((enteredData->value = atoi(&enteredData->command[1])) == 0)
@@ -360,7 +359,7 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
                 break;
 
             default:
-                fprintf(stderr, "No such enteredData->command");
+                fprintf(stderr, "No such enteredData->command\n");
 
                 break;
         }

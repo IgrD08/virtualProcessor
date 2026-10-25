@@ -32,7 +32,8 @@ enum commands
     IN_OF              = 15,
     CALL               = 16,
     RET                = 17,
-    DRAW               = 18
+    CONSOLE_DRAW       = 18,
+    WINDOW_DRAW        = 19
 };
 
 enum registerEnum

@@ -8,6 +8,7 @@ returnValue processorDestroyer(processor *proc)
     stackDestroy(&proc->returnStk);
 
     free(proc->code);
+    free(proc->RAM);
 
     return INTERPRETER_CORRECT;
 }
@@ -18,7 +19,7 @@ void processorDump(processor *proc, size_t codeLen)
 
     for (size_t i = 0; i < codeLen; i++)
     {
-        printf("%d ", proc->code[i]);
+        printf(SPEC, proc->code[i]);
     }
 
     printf("\n");
@@ -46,9 +47,9 @@ returnValue hlt(processor *proc)
 
 returnValue push(processor *proc)
 {
-    int res = 0;
-    int *args = &proc->code[proc->IP + 1];
-    int commandCode = proc->code[proc->IP];
+    stackElem_t res = 0;
+    stackElem_t *args = &proc->code[proc->IP + 1];
+    stackElem_t commandCode = proc->code[proc->IP];
 
     if (commandCode & 0x20)
     {
@@ -58,7 +59,7 @@ returnValue push(processor *proc)
     }
     if (commandCode & 0x40)
     {
-        res += proc->reg[*args];
+        res += (stackElem_t)proc->reg[*args];
         args++;
         proc->IP++;
     }
@@ -74,8 +75,8 @@ returnValue push(processor *proc)
 
 returnValue add(processor *proc)
 {
-    int a = stackPop(&proc->stk);
-    int b = stackPop(&proc->stk);
+    stackElem_t a = stackPop(&proc->stk);
+    stackElem_t b = stackPop(&proc->stk);
     stackPush(&proc->stk, a + b);
 
     return INTERPRETER_CORRECT;
@@ -83,8 +84,8 @@ returnValue add(processor *proc)
 
 returnValue sub(processor *proc)
 {
-    int a = stackPop(&proc->stk);
-    int b = stackPop(&proc->stk);
+    stackElem_t a = stackPop(&proc->stk);
+    stackElem_t b = stackPop(&proc->stk);
     stackPush(&proc->stk, b - a);
 
     return INTERPRETER_CORRECT;
@@ -92,8 +93,8 @@ returnValue sub(processor *proc)
 
 returnValue mul(processor *proc)
 {
-    int a = stackPop(&proc->stk);
-    int b = stackPop(&proc->stk);
+    stackElem_t a = stackPop(&proc->stk);
+    stackElem_t b = stackPop(&proc->stk);
     stackPush(&proc->stk, a * b);
 
     return INTERPRETER_CORRECT;
@@ -101,8 +102,8 @@ returnValue mul(processor *proc)
 
 returnValue div(processor *proc)
 {
-    int a = stackPop(&proc->stk);
-    int b = stackPop(&proc->stk);
+    stackElem_t a = stackPop(&proc->stk);
+    stackElem_t b = stackPop(&proc->stk);
     if (a != 0)
     {
         stackPush(&proc->stk,  b / a);
@@ -119,18 +120,18 @@ returnValue div(processor *proc)
 
 returnValue out(processor *proc)
 {
-    int value = stackPop(&proc->stk);
-    printf("<<%d>>\n", value);
+    stackElem_t value = stackPop(&proc->stk);
+    printf("<<" SPEC ">>\n", value);
 
     return INTERPRETER_CORRECT;
 }
 
 returnValue pop(processor *proc)
 {
-    int res = 0;
-    int regIndex = -1;
-    int *args = &proc->code[proc->IP + 1];
-    int commandCode = proc->code[proc->IP];
+    stackElem_t res = 0;
+    stackElem_t regIndex = 0;
+    stackElem_t *args = &proc->code[proc->IP + 1];
+    stackElem_t commandCode = proc->code[proc->IP];
 
     if (commandCode & 0x40)
     {
@@ -148,7 +149,7 @@ returnValue pop(processor *proc)
         proc->IP++;
     }
 
-    int valueToStore = stackPop(&proc->stk);
+    stackElem_t valueToStore = stackPop(&proc->stk);
 
     if (commandCode & 0x80)
     {
@@ -173,8 +174,8 @@ returnValue jmp(processor *proc)
 
 returnValue ja(processor *proc)
 {
-    int a = stackPop(&proc->stk);
-    int b = stackPop(&proc->stk);
+    stackElem_t a = stackPop(&proc->stk);
+    stackElem_t b = stackPop(&proc->stk);
 
     if (a > b)
         jmp(proc);
@@ -186,8 +187,8 @@ returnValue ja(processor *proc)
 
 returnValue jae(processor *proc)
 {
-    int a = stackPop(&proc->stk);
-    int b = stackPop(&proc->stk);
+    stackElem_t a = stackPop(&proc->stk);
+    stackElem_t b = stackPop(&proc->stk);
 
     if (a >= b)
         jmp(proc);
@@ -201,8 +202,8 @@ returnValue jb(processor *proc)
 {
     proc->IP++;
 
-    int a = stackPop(&proc->stk);
-    int b = stackPop(&proc->stk);
+    stackElem_t a = stackPop(&proc->stk);
+    stackElem_t b = stackPop(&proc->stk);
 
     if (a < b)
         jmp(proc);
@@ -214,8 +215,8 @@ returnValue jb(processor *proc)
 
 returnValue jbe(processor *proc)
 {
-    int a = stackPop(&proc->stk);
-    int b = stackPop(&proc->stk);
+    stackElem_t a = stackPop(&proc->stk);
+    stackElem_t b = stackPop(&proc->stk);
 
     if (a <= b)
         jmp(proc);
@@ -227,8 +228,8 @@ returnValue jbe(processor *proc)
 
 returnValue je(processor *proc)
 {
-    int a = stackPop(&proc->stk);
-    int b = stackPop(&proc->stk);
+    stackElem_t a = stackPop(&proc->stk);
+    stackElem_t b = stackPop(&proc->stk);
 
     if (a == b)
         jmp(proc);
@@ -240,8 +241,8 @@ returnValue je(processor *proc)
 
 returnValue jne(processor *proc)
 {
-    int a = stackPop(&proc->stk);
-    int b = stackPop(&proc->stk);
+    stackElem_t a = stackPop(&proc->stk);
+    stackElem_t b = stackPop(&proc->stk);
 
     if (a != b)
         jmp(proc);
@@ -253,9 +254,9 @@ returnValue jne(processor *proc)
 
 returnValue in(processor *proc)
 {
-    int value = 0;
+    stackElem_t value = 0;
 
-    if(scanf("%d", &value) == 1)
+    if(scanf(SPEC, &value) == 1)
         stackPush(&proc->stk, value);
     else
         return INTERPRETER_ERROR;
@@ -265,7 +266,7 @@ returnValue in(processor *proc)
 
 returnValue call(processor *proc)
 {
-    stackPush(&proc->returnStk, proc->IP + 1);
+    stackPush(&proc->returnStk, (stackElem_t)proc->IP + 1);
 
     jmp(proc);
 
@@ -275,26 +276,6 @@ returnValue call(processor *proc)
 returnValue ret(processor *proc)
 {
     proc->IP = (size_t)stackPop(&proc->returnStk);
-
-    return INTERPRETER_CORRECT;
-}
-
-returnValue draw(processor *proc)
-{
-    proc->IP++;
-
-    size_t size = proc->reg[proc->code[proc->IP]];
-
-    for (size_t i = 0; i < size; i++)
-    {
-        for (size_t j = 0; j < size; j++)
-        {
-            printf("[%c]", proc->RAM[size * i + j]);
-        }
-
-        printf("\n");
-    }
-
 
     return INTERPRETER_CORRECT;
 }
