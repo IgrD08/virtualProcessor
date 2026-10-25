@@ -5,6 +5,10 @@
 returnValue consoledraw(processor *proc)
 {
     proc->IP++;
+    size_t size = (size_t)proc->reg[proc->code[proc->IP]];
+
+    for (size_t i = 0; i < size; i++)
+    {
         for (size_t j = 0; j < size; j++)
         {
 
