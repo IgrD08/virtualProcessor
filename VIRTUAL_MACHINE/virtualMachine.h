@@ -13,15 +13,17 @@ struct processor
     uint8_t      *code;
     stackElem_t  *viRAM;
     size_t       IP;
+    size_t       numberOfReadBytes;
 };
 
 const int initialCapacity = 10;
 const int WINDOW_SIZE     = 600;
 const int RAM_SIZE        = 364000;
+const int VIRAM_POINTER   = 4000;
 
-returnValue processorInit     (processor *proc);
+returnValue processorInit     (processor *proc, const char *fileName);
+returnValue readFromFile      (processor *proc, const char *fileName);
 returnValue processorDestroyer(processor *proc);
-returnValue readFromFile      (processor *proc, const char *fileName, struct stat fileInfo);
 returnValue hlt               (processor *proc);
 returnValue push              (processor *proc);
 returnValue add               (processor *proc);

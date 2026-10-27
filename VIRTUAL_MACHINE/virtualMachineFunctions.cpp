@@ -1,7 +1,17 @@
 #include "virtualMachine.h"
 
-returnValue processorInit(processor *proc)
+returnValue processorInit(processor *proc, const char *fileName)
 {
+    struct stat fileInfo;
+    if (stat(fileName, &fileInfo) == -1)
+        return INTERPRETER_ERROR;
+
+    proc->numberOfReadBytes = (size_t)fileInfo.st_size / sizeof(uint8_t);
+
+    proc->code = (uint8_t *) calloc(proc->numberOfReadBytes, sizeof(uint8_t));
+    if (proc->code == NULL)
+        return INTERPRETER_ERROR;
+
     proc->stk = {};
     STACK_INIT(&(proc->stk), initialCapacity);
     STACK_INIT(&(proc->returnStk), initialCapacity);
@@ -9,18 +19,18 @@ returnValue processorInit(processor *proc)
     if (proc->RAM == NULL)
         return INTERPRETER_ERROR;
 
-    proc->viRAM = &proc->RAM[4000];
+    proc->viRAM = &proc->RAM[VIRAM_POINTER];
 
     return INTERPRETER_CORRECT;
 }
 
-returnValue readFromFile(processor *proc, const char *fileName, struct stat fileInfo)
+returnValue readFromFile(processor *proc, const char *fileName)
 {
     FILE *filePointer = NULL;
     if (fileOpening(&filePointer, fileName, "rb") == 1)
         return INTERPRETER_ERROR;
 
-    fread(proc->code, sizeof(uint8_t), (size_t)fileInfo.st_size / sizeof(uint8_t), filePointer);
+    fread(proc->code, sizeof(uint8_t), proc->numberOfReadBytes, filePointer);
 
     if (closeFile(&filePointer) == 1)
         return INTERPRETER_ERROR;
@@ -32,9 +42,10 @@ returnValue processorDestroyer(processor *proc)
 {
     stackDestroy(&proc->stk);
     stackDestroy(&proc->returnStk);
-printf("free");
     free(proc->code);
     free(proc->RAM);
+
+    exit(EXIT_SUCCESS);
 
     return INTERPRETER_CORRECT;
 }
@@ -42,10 +53,6 @@ printf("free");
 returnValue hlt(processor *proc)
 {
     processorDestroyer(proc);
-
-    exit(EXIT_SUCCESS);
-
-    proc->IP += sizeof(uint8_t);
 
     return INTERPRETER_CORRECT;
 }
@@ -128,7 +135,7 @@ returnValue div(processor *proc)
     }
     else
     {
-        fprintf(stderr, "Unable operation\n");
+        fprintf(stderr, "Unable operation...\n");
 
         return INTERPRETER_ERROR;
     }
@@ -187,7 +194,7 @@ returnValue pop(processor *proc)
 
     return INTERPRETER_CORRECT;
 }
-//TODO - доделать условные джампы
+
 returnValue jmp(processor *proc)
 {
     proc->IP += sizeof(uint8_t);

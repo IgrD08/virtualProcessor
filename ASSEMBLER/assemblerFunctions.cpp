@@ -14,7 +14,9 @@ returnValue readFromFile(fileInfoStruc_t *fileToReadInfo)
     if (fileOpening(&(fileToReadInfo->filePointer), fileToReadInfo->name, "r") == 1)
         return INTERPRETER_ERROR;
 
-    size_t realCount = fread(fileToReadInfo->buffer, sizeof(char), (size_t)fileInfo.st_size, fileToReadInfo->filePointer);
+    size_t realCount = 0;
+    if ((realCount = fread(fileToReadInfo->buffer, sizeof(char), (size_t)fileInfo.st_size, fileToReadInfo->filePointer)) < (size_t)fileInfo.st_size)
+        return INTERPRETER_ERROR;
 
     fileToReadInfo->buffer[realCount] = '\0';
 
@@ -41,8 +43,7 @@ returnValue readFromFile(fileInfoStruc_t *fileToReadInfo)
         i++;
     }
 
-    if (closeFile(&(fileToReadInfo->filePointer)) == 1)
-        return INTERPRETER_ERROR;
+    closeFile(&fileToReadInfo->filePointer);
 
     return INTERPRETER_CORRECT;
 }

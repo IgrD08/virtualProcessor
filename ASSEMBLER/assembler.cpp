@@ -11,18 +11,19 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    fileInfoStruc_t fileToReadInfo = {NULL, argv[1], NULL, 0, NULL};
+    fileInfoStruc_t fileToReadInfo = {.individualLines = NULL, .name = argv[1],
+                                      .filePointer = NULL, .numberOfLines = 0, .buffer = NULL};
 
     if (readFromFile(&fileToReadInfo) != INTERPRETER_CORRECT)
         return 1;
 
-    dataStruc_t data = {};
+    dataStruc_t data = {};// TODO - добавить calloc для меток
     for (size_t i = 0; i < NUMBER_OF_LABELS; i++)
         data.labels[i] = (size_t)-1;
 
     readItemsStruc_t enteredData = {};
 
-    if ((data.data = (uint8_t *)calloc((size_t)fileToReadInfo.numberOfLines * 10, sizeof(uint8_t))) == NULL)//TODO - need to update
+    if ((data.data = (uint8_t *)calloc((size_t)fileToReadInfo.numberOfLines * 5, sizeof(uint8_t))) == NULL)
         return 1;
 
     for (size_t i = 0; i < NUMBER_OF_PASSES; i++)
