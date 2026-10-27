@@ -1,5 +1,5 @@
-#include "commands.h"
-#include "stack.h"
+#include "../commands.h"
+#include "../STACK/stack.h"
 #include "assembler.h"
 
 returnValue readFromFile(fileInfoStruc_t *fileToReadInfo)
@@ -51,7 +51,7 @@ returnValue checkForLabel(dataStruc_t *data, readItemsStruc_t *enteredData)
 {
     if (enteredData->string[0] == ':')
     {
-        if ((enteredData->value = atoi(&enteredData->string[1])) == 0)//TODO - нужен ли atoi
+        if ((enteredData->value = atoi(&enteredData->string[1])) == 0)
             return INTERPRETER_ERROR;
 
         memcpy(&data->data[data->dataIndex], &data->labels[enteredData->value], sizeof(size_t));
@@ -101,7 +101,7 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
         switch (enteredData->command[0])
         {
-            case 'P'://TODO - объединить PUSH и POP
+            case 'P':
                 if (!strcmp(enteredData->command, "PUSH"))
                 {
                     if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) <= 0)
@@ -147,7 +147,7 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
                     }
                     else if (sscanf(fileToReadInfo->individualLines[i], "%*s [%[^]]s", enteredData->string) == 1)
                     {
-                        data->data[data->dataIndex] = (uint8_t)(PUSH | 0x20 | 0x40);
+                        data->data[data->dataIndex] = (uint8_t)(PUSH | 0x40 | 0x80);
                         data->dataIndex += sizeof(uint8_t);
 
                         choseRegister(data, enteredData);

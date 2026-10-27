@@ -2,7 +2,7 @@
 #define ASSEMBLER_H
 
 const int NUMBER_OF_LABELS = 20;
-const int NUMBER_OF_READ_ITEMS = 10;
+const int NUMBER_OF_READ_ITEMS = 20;
 const size_t NUMBER_OF_PASSES = 2;
 
 struct fileInfoStruc_t

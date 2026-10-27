@@ -1,5 +1,3 @@
-#include "commands.h"
-#include "stack.h"
 #include "virtualMachine.h"
 
 returnValue processorInit(processor *proc)
@@ -16,10 +14,10 @@ returnValue processorInit(processor *proc)
     return INTERPRETER_CORRECT;
 }
 
-returnValue readFromFile(processor *proc, struct stat fileInfo)
+returnValue readFromFile(processor *proc, const char *fileName, struct stat fileInfo)
 {
     FILE *filePointer = NULL;
-    if (fileOpening(&filePointer, "numericData.asm", "rb") == 1)
+    if (fileOpening(&filePointer, fileName, "rb") == 1)
         return INTERPRETER_ERROR;
 
     fread(proc->code, sizeof(uint8_t), (size_t)fileInfo.st_size / sizeof(uint8_t), filePointer);
@@ -30,39 +28,15 @@ returnValue readFromFile(processor *proc, struct stat fileInfo)
     return INTERPRETER_CORRECT;
 }
 
-
 returnValue processorDestroyer(processor *proc)
 {
     stackDestroy(&proc->stk);
     stackDestroy(&proc->returnStk);
-
+printf("free");
     free(proc->code);
     free(proc->RAM);
 
     return INTERPRETER_CORRECT;
-}
-
-void processorDump(processor *proc, size_t codeLen)
-{
-    stackDump(&proc->stk, stdout);
-
-    for (size_t i = 0; i < codeLen; i++)
-    {
-        printf(SPEC, proc->code[i]);
-    }
-
-    printf("\n");
-
-    for (size_t i = 0; i < 2 * proc->IP - 1; i++)
-    {
-        printf(" ");
-    }
-
-    printf("^\n");
-
-    getchar();
-
-    return;
 }
 
 returnValue hlt(processor *proc)

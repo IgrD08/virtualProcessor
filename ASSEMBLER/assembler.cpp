@@ -1,10 +1,10 @@
-#include "commands.h"
-#include "stack.h"
+#include "../commands.h"
+#include "../STACK/stack.h"
 #include "assembler.h"
 
 int main(int argc, char *argv[])
 {
-    if (argc < 2)
+    if (argc < 3)
     {
         fprintf(stderr, "Insufficient files\n");
 
@@ -17,7 +17,8 @@ int main(int argc, char *argv[])
         return 1;
 
     dataStruc_t data = {};
-    memset(&data.labels[0], -1, NUMBER_OF_LABELS);
+    for (size_t i = 0; i < NUMBER_OF_LABELS; i++)
+        data.labels[i] = (size_t)-1;
 
     readItemsStruc_t enteredData = {};
 

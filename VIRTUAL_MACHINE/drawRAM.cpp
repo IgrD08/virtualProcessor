@@ -1,4 +1,3 @@
-#include "commands.h"
 #include "virtualMachine.h"
 #include "raylib.h"
 

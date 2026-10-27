@@ -1,5 +1,3 @@
-#include "commands.h"
-#include "stack.h"
 #include "virtualMachine.h"
 
 returnValue(*arrayOfFunctionPointers[])(processor *proc) = {
@@ -26,7 +24,7 @@ int main(int argc, char *argv[])
 
     proc.code = (uint8_t *) calloc((size_t)fileInfo.st_size / sizeof(uint8_t), sizeof(uint8_t));
 
-    if (readFromFile(&proc, fileInfo) != INTERPRETER_CORRECT)
+    if (readFromFile(&proc, argv[1], fileInfo) != INTERPRETER_CORRECT)
         return 1;
 
     for (proc.IP = 0; proc.IP < (size_t)fileInfo.st_size / sizeof(uint8_t);)
@@ -37,11 +35,10 @@ int main(int argc, char *argv[])
 
             return 1;
         }
-
-        // processorDump(&proc, (size_t)fileInfo.st_size / sizeof(int)); //TODO - улучшить
     }
 
     processorDestroyer(&proc);
 
     return 0;
 }
+

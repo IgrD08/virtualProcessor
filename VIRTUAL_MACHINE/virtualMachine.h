@@ -1,6 +1,9 @@
 #ifndef VIRTUAL_MACHINE_H
 #define VIRTUAL_MACHINE_H
 
+#include "../commands.h"
+#include "../STACK/stack.h"
+
 struct processor
 {
     stack_t      stk;
@@ -18,8 +21,7 @@ const int RAM_SIZE        = 364000;
 
 returnValue processorInit     (processor *proc);
 returnValue processorDestroyer(processor *proc);
-void processorDump            (processor *proc, size_t codeLen);
-returnValue readFromFile      (processor *proc, struct stat fileInfo);
+returnValue readFromFile      (processor *proc, const char *fileName, struct stat fileInfo);
 returnValue hlt               (processor *proc);
 returnValue push              (processor *proc);
 returnValue add               (processor *proc);
