@@ -109,10 +109,10 @@ stackElem_t stackPop(stack_t *stk)
     stackElem_t value = (stk->data)[stk->size];
     stk->data[stk->size] = POISON;
 
-    if (stk->size * 4 <= stk->capacity)
-    {
-        stackRecalloc(stk, stk->capacity / 2);
-    }
+    // if (stk->size * 4 <= stk->capacity)
+    // {
+    //     stackRecalloc(stk, stk->capacity / 2);
+    // }
 
     #ifdef STACK_DEBUG
         stk->hash = recountHash(stk);

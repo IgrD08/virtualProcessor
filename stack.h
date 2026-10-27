@@ -1,8 +1,8 @@
 #ifndef STACK_H
 #define STACK_H
 
-typedef unsigned int stackElem_t;
-#define SPEC "%u"
+typedef int stackElem_t;
+#define SPEC "%d"
 
 //#define STACK_DEBUG
 

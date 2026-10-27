@@ -4,7 +4,8 @@
 
 returnValue consoledraw(processor *proc)
 {
-    proc->IP++;
+    proc->IP += sizeof(uint8_t);
+
     size_t size = (size_t)proc->reg[proc->code[proc->IP]];
 
     for (size_t i = 0; i < size; i++)
@@ -12,11 +13,13 @@ returnValue consoledraw(processor *proc)
         for (size_t j = 0; j < size; j++)
         {
 
-            printf("[%c]", proc->RAM[size * i + j]);
+            printf("[%c]", (char)proc->RAM[size * i + j]);
         }
 
         printf("\n");
     }
+
+    proc->IP += sizeof(size_t);
 
     return INTERPRETER_CORRECT;
 }
@@ -25,8 +28,6 @@ returnValue windowdraw(processor *proc)
 {
     InitWindow(WINDOW_SIZE, WINDOW_SIZE, "Videomemory");
     SetTargetFPS(60);
-
-    // Color *pixels = (Color *)malloc(WINDOW_SIZE * WINDOW_SIZE * sizeof(Color));
 
     Image img = {
                     .data = proc->viRAM,
@@ -52,9 +53,9 @@ returnValue windowdraw(processor *proc)
     }
 
     UnloadTexture(tex);
-    // free(pixels);
     CloseWindow();
+
+    proc->IP += sizeof(uint8_t);
 
     return INTERPRETER_CORRECT;
 }
-

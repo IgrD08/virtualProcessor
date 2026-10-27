@@ -54,13 +54,13 @@ returnValue checkForLabel(dataStruc_t *data, readItemsStruc_t *enteredData)
         if ((enteredData->value = atoi(&enteredData->string[1])) == 0)//TODO - нужен ли atoi
             return INTERPRETER_ERROR;
 
-        data->data[data->dataIndex] = data->labels[enteredData->value];
-        (data->dataIndex)++;
+        memcpy(&data->data[data->dataIndex], &data->labels[enteredData->value], sizeof(size_t));
+        data->dataIndex += sizeof(size_t);
     }
     else
     {
-        data->data[data->dataIndex] = enteredData->value;
-        (data->dataIndex)++;
+        memcpy(&data->data[data->dataIndex], &enteredData->value, sizeof(size_t));
+        data->dataIndex += sizeof(size_t);
     }
 
     return INTERPRETER_CORRECT;
@@ -69,13 +69,13 @@ returnValue checkForLabel(dataStruc_t *data, readItemsStruc_t *enteredData)
 returnValue choseRegister(dataStruc_t *data, readItemsStruc_t *enteredData)
 {
     if (!strcmp(enteredData->string, "AX"))
-        data->data[data->dataIndex] = AX;
+        data->data[data->dataIndex] = (uint8_t)AX;
     else if (!strcmp(enteredData->string, "BX"))
-        data->data[data->dataIndex] = BX;
+        data->data[data->dataIndex] = (uint8_t)BX;
     else if (!strcmp(enteredData->string, "CX"))
-        data->data[data->dataIndex] = CX;
+        data->data[data->dataIndex] = (uint8_t)CX;
     else if (!strcmp(enteredData->string, "DX"))
-        data->data[data->dataIndex] = DX;
+        data->data[data->dataIndex] = (uint8_t)DX;
     else
     {
         fprintf(stderr, "Register does not found\n");
@@ -101,63 +101,65 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
         switch (enteredData->command[0])
         {
-            case 'P':
+            case 'P'://TODO - объединить PUSH и POP
                 if (!strcmp(enteredData->command, "PUSH"))
                 {
                     if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) <= 0)
                         break;
 
-                    if (sscanf(fileToReadInfo->individualLines[i], "%*s %d", &enteredData->value) == 1)
+                    if (sscanf(fileToReadInfo->individualLines[i], "%*s" SPEC, &enteredData->value) == 1)
                     {
-                        data->data[data->dataIndex] = PUSH | 0x20;
-                        (data->dataIndex)++;
+                        data->data[data->dataIndex] = (uint8_t)(PUSH | 0x20);
+                        data->dataIndex += sizeof(uint8_t);
 
-                        data->data[data->dataIndex] = enteredData->value;
-                        (data->dataIndex)++;
+                        memcpy(&data->data[data->dataIndex], &enteredData->value, sizeof(stackElem_t));
+                        data->dataIndex += sizeof(stackElem_t);
                     }
-                    else if (sscanf(fileToReadInfo->individualLines[i], "%*s [%d]", &enteredData->value) == 1)
+                    else if (sscanf(fileToReadInfo->individualLines[i], "%*s [" SPEC "]", &enteredData->value) == 1)
                     {
-                        data->data[data->dataIndex] = PUSH | 0x20 | 0x80;
-                        (data->dataIndex)++;
+                        data->data[data->dataIndex] = (uint8_t)(PUSH | 0x20 | 0x80);
+                        data->dataIndex += sizeof(uint8_t);
 
-                        data->data[data->dataIndex] = enteredData->value;
-                        (data->dataIndex)++;
+                        memcpy(&data->data[data->dataIndex], &enteredData->value, sizeof(stackElem_t));
+                        data->dataIndex += sizeof(stackElem_t);
                     }
-                    else if (sscanf(fileToReadInfo->individualLines[i], "%*s [%s + %d]", enteredData->string, &enteredData->value) == 2)
+                    else if (sscanf(fileToReadInfo->individualLines[i], "%*s [%s + " SPEC "]", enteredData->string, &enteredData->value) == 2)
                     {
-                        data->data[data->dataIndex] = PUSH | 0x20 | 0x40 | 0x80;
-                        (data->dataIndex)++;
+                        data->data[data->dataIndex] = (uint8_t)(PUSH | 0x20 | 0x40 | 0x80);
+                        data->dataIndex += sizeof(uint8_t);
 
                         choseRegister(data, enteredData);
-                        (data->dataIndex)++;
-                        data->data[data->dataIndex] = enteredData->value;
-                        (data->dataIndex)++;
+                        data->dataIndex += sizeof(uint8_t);
+
+                        memcpy(&data->data[data->dataIndex], &enteredData->value, sizeof(stackElem_t));
+                        data->dataIndex += sizeof(stackElem_t);
                     }
-                    else if (sscanf(fileToReadInfo->individualLines[i], "%*s %s + %d", enteredData->string, &enteredData->value) == 2)
+                    else if (sscanf(fileToReadInfo->individualLines[i], "%*s %s +" SPEC, enteredData->string, &enteredData->value) == 2)
                     {
-                        data->data[data->dataIndex] = PUSH | 0x20 | 0x40;
-                        (data->dataIndex)++;
+                        data->data[data->dataIndex] = (uint8_t)(PUSH | 0x20 | 0x40);
+                        data->dataIndex += sizeof(uint8_t);
 
                         choseRegister(data, enteredData);
-                        (data->dataIndex)++;
-                        data->data[data->dataIndex] = enteredData->value;
-                        (data->dataIndex)++;
+                        data->dataIndex += sizeof(uint8_t);
+
+                        memcpy(&data->data[data->dataIndex], &enteredData->value, sizeof(stackElem_t));
+                        data->dataIndex += sizeof(stackElem_t);
                     }
                     else if (sscanf(fileToReadInfo->individualLines[i], "%*s [%[^]]s", enteredData->string) == 1)
                     {
-                        data->data[data->dataIndex] = PUSH | 0x40 | 0x80;
-                        (data->dataIndex)++;
+                        data->data[data->dataIndex] = (uint8_t)(PUSH | 0x20 | 0x40);
+                        data->dataIndex += sizeof(uint8_t);
 
                         choseRegister(data, enteredData);
-                        (data->dataIndex)++;
+                        data->dataIndex += sizeof(uint8_t);
                     }
                     else if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) == 1)
                     {
-                        data->data[data->dataIndex] = PUSH | 0x40;
-                        (data->dataIndex)++;
+                        data->data[data->dataIndex] = (uint8_t)(PUSH | 0x40);
+                        data->dataIndex += sizeof(uint8_t);
 
                         choseRegister(data, enteredData);
-                        (data->dataIndex)++;
+                        data->dataIndex += sizeof(uint8_t);
                     }
                 }
 
@@ -166,39 +168,40 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
                     if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) <= 0)
                         break;
 
-                    if (sscanf(fileToReadInfo->individualLines[i], "%*s [%d]", &enteredData->value) == 1)
+                    if (sscanf(fileToReadInfo->individualLines[i], "%*s [" SPEC "]", &enteredData->value) == 1)
                     {
-                        data->data[data->dataIndex] = POP | 0x20 | 0x80;
-                        (data->dataIndex)++;
-                        data->data[data->dataIndex] = enteredData->value;
-                        (data->dataIndex)++;
+                        data->data[data->dataIndex] = (uint8_t)(POP | 0x20 | 0x80);
+                        data->dataIndex += sizeof(uint8_t);
+
+                        memcpy(&data->data[data->dataIndex], &enteredData->value, sizeof(stackElem_t));
+                        data->dataIndex += sizeof(stackElem_t);
                     }
-                    else if (sscanf(fileToReadInfo->individualLines[i], "%*s [%s + %d]", enteredData->string, &enteredData->value) == 2)
+                    else if (sscanf(fileToReadInfo->individualLines[i], "%*s [%s + " SPEC "]", enteredData->string, &enteredData->value) == 2)
                     {
-                        data->data[data->dataIndex] = POP | 0x20 | 0x40 | 0x80;
-                        (data->dataIndex)++;
+                        data->data[data->dataIndex] = (uint8_t)(POP | 0x20 | 0x40 | 0x80);
+                        data->dataIndex += sizeof(uint8_t);
 
                         choseRegister(data, enteredData);
-                        (data->dataIndex)++;
+                        data->dataIndex += sizeof(uint8_t);
 
-                        data->data[data->dataIndex] = enteredData->value;
-                        (data->dataIndex)++;
+                        memcpy(&data->data[data->dataIndex], &enteredData->value, sizeof(stackElem_t));
+                        data->dataIndex += sizeof(stackElem_t);
                     }
                     else if (sscanf(fileToReadInfo->individualLines[i], "%*s [%[^]]s", enteredData->string) == 1)
                     {
-                        data->data[data->dataIndex] = POP | 0x40 | 0x80;
-                        (data->dataIndex)++;
+                        data->data[data->dataIndex] = (uint8_t)(POP | 0x40 | 0x80);
+                        data->dataIndex += sizeof(uint8_t);
 
                         choseRegister(data, enteredData);
-                        (data->dataIndex)++;
+                        data->dataIndex += sizeof(uint8_t);
                     }
                     else if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) == 1)
                     {
-                        data->data[data->dataIndex] = POP | 0x40;
-                        (data->dataIndex)++;
+                        data->data[data->dataIndex] = (uint8_t)(POP | 0x40);
+                        data->dataIndex += sizeof(uint8_t);
 
                         choseRegister(data, enteredData);
-                        (data->dataIndex)++;
+                        data->dataIndex += sizeof(uint8_t);
                     }
                 }
 
@@ -208,8 +211,8 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 if (!strcmp(enteredData->command, "ADD"))
                 {
-                    data->data[data->dataIndex] = ADD;
-                    (data->dataIndex)++;
+                    data->data[data->dataIndex] = (uint8_t)ADD;
+                    data->dataIndex += sizeof(uint8_t);
                 }
 
                 break;
@@ -218,8 +221,8 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 if (!strcmp(enteredData->command, "CALL"))
                 {
-                    data->data[data->dataIndex] = CALL;
-                    (data->dataIndex)++;
+                    data->data[data->dataIndex] = (uint8_t)CALL;
+                    data->dataIndex += sizeof(uint8_t);
 
                     if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) <= 0)
                         break;
@@ -230,14 +233,14 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 if (!strcmp(enteredData->command, "CONSOLEDRAW"))
                 {
-                    data->data[data->dataIndex] = CONSOLE_DRAW;
-                    (data->dataIndex)++;
+                    data->data[data->dataIndex] = (uint8_t)CONSOLE_DRAW;
+                    data->dataIndex += sizeof(uint8_t);
 
                     if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) <= 0)
                         break;
 
                     choseRegister(data, enteredData);
-                    (data->dataIndex)++;
+                    data->dataIndex += sizeof(uint8_t);
                 }
 
                 break;
@@ -246,8 +249,8 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 if (!strcmp(enteredData->command, "RET"))
                 {
-                    data->data[data->dataIndex] = RET;
-                    (data->dataIndex)++;
+                    data->data[data->dataIndex] = (uint8_t)RET;
+                    data->dataIndex += sizeof(uint8_t);
                 }
 
                 break;
@@ -256,8 +259,8 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 if (!strcmp(enteredData->command, "SUB"))
                 {
-                    data->data[data->dataIndex] = SUB;
-                    (data->dataIndex)++;
+                    data->data[data->dataIndex] = (uint8_t)SUB;
+                    data->dataIndex += sizeof(uint8_t);
                 }
 
                 break;
@@ -266,8 +269,8 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 if (!strcmp(enteredData->command, "MUL"))
                 {
-                    data->data[data->dataIndex] = MUL;
-                    (data->dataIndex)++;
+                    data->data[data->dataIndex] = (uint8_t)MUL;
+                    data->dataIndex += sizeof(uint8_t);
                 }
 
                 break;
@@ -276,8 +279,8 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 if (!strcmp(enteredData->command, "DIV"))
                 {
-                    data->data[data->dataIndex] = DIV;
-                    (data->dataIndex)++;
+                    data->data[data->dataIndex] = (uint8_t)DIV;
+                    data->dataIndex += sizeof(uint8_t);
                 }
 
                 break;
@@ -286,8 +289,8 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 if (!strcmp(enteredData->command, "OUT_OF"))
                 {
-                    data->data[data->dataIndex] = OUT_OF;
-                    (data->dataIndex)++;
+                    data->data[data->dataIndex] = (uint8_t)OUT_OF;
+                    data->dataIndex += sizeof(uint8_t);
                 }
 
                 break;
@@ -295,21 +298,21 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
             case 'J':
 
                 if (!strcmp(enteredData->command, "JMP"))
-                    data->data[data->dataIndex] = JMP;
+                    data->data[data->dataIndex] = (uint8_t)JMP;
                 else if (!strcmp(enteredData->command, "JA"))
-                    data->data[data->dataIndex] = JA;
+                    data->data[data->dataIndex] = (uint8_t)JA;
                 else if (!strcmp(enteredData->command, "JAE"))
-                    data->data[data->dataIndex] = JAE;
+                    data->data[data->dataIndex] = (uint8_t)JAE;
                 else if (!strcmp(enteredData->command, "JB"))
-                    data->data[data->dataIndex] = JB;
+                    data->data[data->dataIndex] = (uint8_t)JB;
                 else if (!strcmp(enteredData->command, "JBE"))
-                    data->data[data->dataIndex] = JBE;
+                    data->data[data->dataIndex] = (uint8_t)JBE;
                 else if (!strcmp(enteredData->command, "JE"))
-                    data->data[data->dataIndex] = JE;
+                    data->data[data->dataIndex] = (uint8_t)JE;
                 else if (!strcmp(enteredData->command, "JNE"))
-                    data->data[data->dataIndex] = JNE;
+                    data->data[data->dataIndex] = (uint8_t)JNE;
 
-                (data->dataIndex)++;
+                data->dataIndex += sizeof(uint8_t);
 
                 if (sscanf(fileToReadInfo->individualLines[i], "%*s %s", enteredData->string) <= 0)
                     break;
@@ -323,8 +326,8 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 if (!strcmp(enteredData->command, "HLT"))
                 {
-                    data->data[data->dataIndex] = HLT;
-                    (data->dataIndex)++;
+                    data->data[data->dataIndex] = (uint8_t)HLT;
+                    data->dataIndex += sizeof(uint8_t);
                 }
 
                 break;
@@ -333,8 +336,8 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 if (!strcmp(enteredData->command, "IN_OF"))
                 {
-                    data->data[data->dataIndex] = IN_OF;
-                    (data->dataIndex)++;
+                    data->data[data->dataIndex] = (uint8_t)IN_OF;
+                    data->dataIndex += sizeof(uint8_t);
                 }
 
                 break;
@@ -343,8 +346,8 @@ returnValue rewriteTextIntoNumber(fileInfoStruc_t *fileToReadInfo,
 
                 if (!strcmp(enteredData->command, "WINDOWDRAW"))
                 {
-                    data->data[data->dataIndex] = WINDOW_DRAW;
-                    (data->dataIndex)++;
+                    data->data[data->dataIndex] = (uint8_t)WINDOW_DRAW;
+                    data->dataIndex += sizeof(uint8_t);
                 }
 
                 break;
@@ -383,7 +386,7 @@ returnValue writeToFile(dataStruc_t *data, char *fileName)
     if (fileOpening(&filePointerWrite, fileName, "wb"))
         return INTERPRETER_ERROR;
 
-    fwrite(data->data, sizeof(int), (size_t)data->dataIndex, filePointerWrite);//TODO - байтовый uint8-t
+    fwrite(data->data, sizeof(uint8_t), (size_t)data->dataIndex, filePointerWrite);
 
     if (closeFile(&filePointerWrite))
         return INTERPRETER_ERROR;

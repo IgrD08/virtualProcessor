@@ -16,16 +16,16 @@ struct fileInfoStruc_t
 
 struct dataStruc_t
 {
-    int labels[NUMBER_OF_LABELS];
-    int *data;
-    int dataIndex;
+    size_t labels[NUMBER_OF_LABELS];
+    uint8_t *data;
+    size_t dataIndex;
 };
 
 struct readItemsStruc_t
 {
     char command[NUMBER_OF_READ_ITEMS];
     char string[NUMBER_OF_READ_ITEMS];
-    int value;
+    stackElem_t value;
 };
 
 returnValue readFromFile(fileInfoStruc_t *fileToReadInfo);
