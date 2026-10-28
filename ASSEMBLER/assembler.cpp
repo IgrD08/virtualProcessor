@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     if (readFromFile(&fileToReadInfo) != INTERPRETER_CORRECT)
         return 1;
 
-    dataStruc_t data = {};// TODO - добавить calloc для меток
+    dataStruc_t data = {};
     for (size_t i = 0; i < NUMBER_OF_LABELS; i++)
         data.labels[i] = (size_t)-1;
 
